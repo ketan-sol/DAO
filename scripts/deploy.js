@@ -35,6 +35,21 @@ async function main() {
   );
   await governor.deployed();
 
+  const delegate = async (governanceTokenAddress, delegatedAccount) => {
+    const governanceToken = await ethers.getContractAt(
+      'GovernanceToken',
+      governanceTokenAddress
+    );
+    const trx = await governanceToken.delegate(delegatedAccount);
+    await trx.wait(1);
+    console.log(
+      `Checkpoints ${await governanceToken.numCheckpoints(delegatedAccount)}`
+    );
+
+    await delegate.deploy(governanceToken.address);
+    console.log('Delegated');
+  };
+
   console.log('Setting up roles..');
 
   const proposerRole = await lock.PROPOSER_ROLE();
@@ -51,8 +66,8 @@ async function main() {
   const store = await Store.deploy();
   await store.deployed();
   console.log('Store contract deployed to:', store.address);
-  const storeAddress = await ethers.getContractAt(store.address);
-  const transferOwner = await storeAddress.transferOwnership(lock.address);
+  //const storeAddressInstance = store.address;
+  const transferOwner = await store.transferOwnership(lock.address);
   await transferOwner.wait(1);
 
   console.log('Time Lock deployed to:', lock.address);
