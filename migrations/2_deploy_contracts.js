@@ -21,7 +21,7 @@ module.exports = async function (deployer) {
   await token.transfer(voter4, amount, { from: executor });
   await token.transfer(voter5, amount, { from: executor });
 
-  const minDelay = 1;
+  const minDelay = 0;
 
   await deployer.deploy(Timelock, minDelay, [proposer], [executor]);
   const timelock = await Timelock.deployed();
