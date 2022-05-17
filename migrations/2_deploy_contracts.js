@@ -21,7 +21,7 @@ module.exports = async function (deployer) {
   await token.transfer(voter4, amount, { from: executor });
   await token.transfer(voter5, amount, { from: executor });
 
-  const minDelay = 0;
+  const minDelay = 1;
 
   await deployer.deploy(Timelock, minDelay, [proposer], [executor]);
   const timelock = await Timelock.deployed();
@@ -48,7 +48,7 @@ module.exports = async function (deployer) {
   await store.transferOwnership(timelock.address, { from: executor });
 
   //assigning roles
-  const proposerRole = await timelock.PROPERSER_ROLE();
+  const proposerRole = await timelock.PROPOSER_ROLE();
   const executorRole = await timelock.EXECUTOR_ROLE();
 
   await timelock.grantRole(proposerRole, governance.address, {

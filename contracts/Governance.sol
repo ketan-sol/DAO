@@ -2,7 +2,6 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/governance/Governor.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
@@ -10,49 +9,39 @@ import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.so
 
 contract Governance is
     Governor,
-    GovernorSettings,
-    GovernorCountingSimple, //counting votes
-    GovernorVotes, //integrating with erc20 contract
+    GovernorCountingSimple,
+    GovernorVotes,
     GovernorVotesQuorumFraction,
     GovernorTimelockControl
 {
+    uint256 public votingDelay_;
+    uint256 public votingPeriod_;
+
     constructor(
         IVotes _token,
         TimelockController _timelock,
+        uint256 _quorum,
         uint256 _votingDelay,
-        uint256 _votingPeriod,
-        uint256 _quorumPercentage
+        uint256 _votingPeriod
     )
-        Governor("MyGovernor")
-        GovernorSettings(
-            _votingDelay, /* 1 block */
-            _votingPeriod, /*45818 blocks = ~1 /* 1 week */
-            0
-        )
+        Governor("DApp University DAO")
         GovernorVotes(_token)
-        GovernorVotesQuorumFraction(_quorumPercentage)
+        GovernorVotesQuorumFraction(_quorum)
         GovernorTimelockControl(_timelock)
-    {}
+    {
+        votingDelay_ = _votingDelay;
+        votingPeriod_ = _votingPeriod;
+    }
+
+    function votingDelay() public view override returns (uint256) {
+        return votingDelay_;
+    }
+
+    function votingPeriod() public view override returns (uint256) {
+        return votingPeriod_;
+    }
 
     // The following functions are overrides required by Solidity.
-
-    function votingDelay()
-        public
-        view
-        override(IGovernor, GovernorSettings)
-        returns (uint256)
-    {
-        return super.votingDelay();
-    }
-
-    function votingPeriod()
-        public
-        view
-        override(IGovernor, GovernorSettings)
-        returns (uint256)
-    {
-        return super.votingPeriod();
-    }
 
     function quorum(uint256 blockNumber)
         public
@@ -66,7 +55,7 @@ contract Governance is
     function getVotes(address account, uint256 blockNumber)
         public
         view
-        override(Governor, IGovernor)
+        override(IGovernor, Governor)
         returns (uint256)
     {
         return super.getVotes(account, blockNumber);
@@ -88,15 +77,6 @@ contract Governance is
         string memory description
     ) public override(Governor, IGovernor) returns (uint256) {
         return super.propose(targets, values, calldatas, description);
-    }
-
-    function proposalThreshold()
-        public
-        view
-        override(Governor, GovernorSettings)
-        returns (uint256)
-    {
-        return super.proposalThreshold();
     }
 
     function _execute(
