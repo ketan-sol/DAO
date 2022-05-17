@@ -97,4 +97,22 @@ module.exports = async function (callback) {
   );
 
   await token.transfer(proposer, amount, { from: executor });
+
+  const { againstVotes, forVotes, DidNotVote } =
+    await governance.proposalVotes.call(id);
+  console.log(`Votes For: ${web3.utils.fromWei(forVotes.toString(), 'ether')}`);
+  console.log(
+    `Votes Against:  ${web3.utils.fromWei(againstVotes.toString(), 'ether')}`
+  );
+  console.log(
+    `Votes Neutral: ${web3.utils.fromWei(DidNotVote.toString(), 'ether')}`
+  );
+
+  blockNumber = await web3.eth.getBlockNumber();
+  console.log(`Current block number: ${blockNumber}\n`);
+
+  proposalState = await governance.state.call(id);
+  console.log(
+    `Current state of proposal: ${proposalState.toString()} (Succeeded) \n`
+  );
 };
