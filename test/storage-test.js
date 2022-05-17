@@ -33,4 +33,68 @@ module.exports = async function (callback) {
     .releaseFunds()
     .encodeABI();
   const description = 'Release funds from storage';
+
+  const tx = await governance.propose(
+    [store.address],
+    [0],
+    [encodedFunction],
+    description,
+    { from: proposer }
+  );
+  const id = tx.logs[0].args.proposalId;
+  console.log(`Created proposal: ${id.toString()}\n`);
+
+  proposalState = await governance.state.call(id);
+  console.log(
+    `Current state of proposal: ${proposalState.toString()} (Pending) \n`
+  );
+
+  const snapshot = await governance.proposalSnapshot.call(id);
+  console.log(`Proposal created on block ${snapshot.toString()}`);
+
+  const deadline = await governance.proposalDeadline.call(id);
+  console.log(`Proposal deadline on block ${deadline.toString()}\n`);
+
+  blockNumber = await web3.eth.getBlockNumber();
+  console.log(`Current blocknumber: ${blockNumber}\n`);
+
+  const quorum = await governance.quorum(blockNumber - 1);
+  console.log(
+    `Number of votes required to pass: ${web3.utils.fromWei(
+      quorum.toString(),
+      'ether'
+    )}\n`
+  );
+
+  console.log('Casting Votes.... \n');
+
+  //Voting
+  //0 = against
+  //1 = For
+  //2 = did not vote
+
+  vote = await governance.castVote(id, 1, { from: voter1 });
+  vote = await governance.castVote(id, 1, { from: voter2 });
+  vote = await governance.castVote(id, 1, { from: voter3 });
+  vote = await governance.castVote(id, 0, { from: voter4 });
+  vote = await governance.castVote(id, 2, { from: voter5 });
+
+  /*
+  Proposal States:
+  Pending,
+  Active,
+  Cancelled,
+  Defeated,
+  Succeeded,
+  Queued,
+  Expired,
+  Executed
+  */
+
+  proposalState = await governance.state.call(id);
+  console.log(
+    `Current state of proposal: ${proposalState.toString()} (Active) \n`
+  );
+
+  await token.transfer(proposer, amount, { from: executor });
 };
