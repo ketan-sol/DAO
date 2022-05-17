@@ -1,7 +1,7 @@
 const MyToken = artifacts.require('MyToken');
 const Timelock = artifacts.require('Timelock');
 const Governance = artifacts.require('Governance');
-const Treasury = artifacts.require('Treasury');
+const Store = artifacts.require('Store');
 
 module.exports = async function (deployer) {
   const [executor, proposer, voter1, voter2, voter3, voter4, voter5] =
@@ -39,4 +39,22 @@ module.exports = async function (deployer) {
     votingPeriod
   );
   const governance = await Governance.deployed();
+
+  //deploying store
+
+  const funds = web3.utils.toWei('25', 'ether');
+  await deployer.deploy(Store, executor, { value: funds });
+  const store = await Store.deployed();
+  await store.transferOwnership(timelock.address, { from: executor });
+
+  //assigning roles
+  const proposerRole = await timelock.PROPERSER_ROLE();
+  const executorRole = await timelock.EXECUTOR_ROLE();
+
+  await timelock.grantRole(proposerRole, governance.address, {
+    from: executor,
+  });
+  await timelock.grantRole(executorRole, governance.address, {
+    from: executor,
+  });
 };
