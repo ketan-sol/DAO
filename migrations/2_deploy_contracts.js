@@ -29,4 +29,14 @@ module.exports = async function (deployer) {
   const quoram = 5; //% of total supply of tokens needed for approval
   const votingDelay = 0; //number of blocks after proposal until voting becomes active
   const votingPeriod = 5; //number of blocks voting will stay open
+
+  await deployer.deploy(
+    Governance,
+    token.address,
+    timelock.address,
+    quoram,
+    votingDelay,
+    votingPeriod
+  );
+  const governance = await Governance.deployed();
 };
