@@ -115,4 +115,36 @@ module.exports = async function (callback) {
   console.log(
     `Current state of proposal: ${proposalState.toString()} (Succeeded) \n`
   );
+
+  const hash = web3.utils.sha3('Release funds from storage');
+  await governance.queue([store.address], [0], [encodedFunction], hash, {
+    from: executor,
+  });
+
+  proposalState = await governance.state.call(id);
+  console.log(
+    `Current state of proposal: ${proposalState.toString()} (Queued) \n`
+  );
+
+  await governance.execute([store.address], [0], [encodedFunction], hash, {
+    from: executor,
+  });
+
+  proposalState = await governance.state.call(id);
+  console.log(
+    `Current state of proposal: ${proposalState.toString()} (Executed) \n`
+  );
+
+  isReleased = await store.isReleased();
+  console.log(`Funds released?: ${isReleased}`);
+
+  funds = await web3.getBalance(store.address);
+  console.log(
+    `Funds in storage: ${web3.utils.fromWei(
+      forVotes.toString(),
+      'ether'
+    )} ETH\n`
+  );
+
+  callback();
 };
